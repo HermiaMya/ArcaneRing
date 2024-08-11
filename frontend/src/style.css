@@ -1,0 +1,42 @@
+
+.dice-roll {
+    display: inline-block;
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    background-size: cover;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .dice-roll:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .dice-roll.selected {
+    background-color: yellow;
+  }
+
+.poker.selected {
+  border: 2px solid yellow;
+}
+.dice-roll {
+  display: inline-block;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dice-roll:hover {
+  background-color: #f0f0f0;
+}
+
+.dice-roll.selected {
+  background-color: yellow;
+}

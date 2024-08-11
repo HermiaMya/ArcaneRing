@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-
+import Dice from './components/Dice';
+import Controls from './components/Controls';
+import Poker from './components/Poker';
+import { mapPokerIdToCardId } from './poker';
+import './style.css';
+/**
+ * 扑克游戏主组件
+ */
 const PokerGame = () => {
-  const [deck, setDeck] = useState(createDeck());
-  const [playerHand, setPlayerHand] = useState([]);
-  const [dealerHand, setDealerHand] = useState([]);
-  const [diceRolls, setDiceRolls] = useState([]);
-  const [playerMoney, setPlayerMoney] = useState(0); // 初始金钱为10
+  const [deck, setDeck] = useState(createDeck()); // 牌堆
+  const [playerHand, setPlayerHand] = useState([]); // 玩家手牌
+  const [dealerHand, setDealerHand] = useState([]); // 庄家手牌
+  const [diceRolls, setDiceRolls] = useState([]); // 骰子点数
+  const [playerMoney, setPlayerMoney] = useState(0); // 玩家金钱
   const [refreshCount, setRefreshCount] = useState(0); // 刷新骰子次数
   const [currentRound, setCurrentRound] = useState(1); // 当前回合
   const [gameStarted, setGameStarted] = useState(false); // 游戏是否开始
@@ -16,10 +23,14 @@ const PokerGame = () => {
 
   useEffect(() => {
     if (gameStarted) {
-      dealInitialCards();
+      dealInitialCards(); // 游戏开始时发初始牌
     }
   }, [gameStarted]);
 
+  /**
+   * 创建一副牌
+   * @returns {Array} 一副牌
+   */
   function createDeck() {
     const suits = ['♠', '♣', '♥', '♦'];
     const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
@@ -32,6 +43,11 @@ const PokerGame = () => {
     return deck;
   }
 
+  /**
+   * 洗牌
+   * @param {Array} deck 牌堆
+   * @returns {Array} 洗好的牌堆
+   */
   function shuffleDeck(deck) {
     for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -40,6 +56,9 @@ const PokerGame = () => {
     return deck;
   }
 
+  /**
+   * 发初始牌
+   */
   function dealInitialCards() {
     const shuffledDeck = shuffleDeck([...deck]);
     setDeck(shuffledDeck);
@@ -48,6 +67,9 @@ const PokerGame = () => {
     setDeck(shuffledDeck.slice(6));
   }
 
+  /**
+   * 掷骰子
+   */
   function rollDice() {
     const rolls = [
       Math.floor(Math.random() * 6) + 1,
@@ -58,6 +80,9 @@ const PokerGame = () => {
     setRefreshCount(refreshCount + 1);
   }
 
+  /**
+   * 刷新选中的骰子
+   */
   function refreshSelectedDice() {
     if (refreshCount < 3) {
       const newDiceRolls = [...diceRolls];
@@ -70,6 +95,9 @@ const PokerGame = () => {
     }
   }
 
+  /**
+   * 确认骰子结果
+   */
   function confirmDiceResults() {
     let moneyChange = 0;
     let actionPointsChange = 1; // 每回合默认有一点行动点
@@ -94,6 +122,10 @@ const PokerGame = () => {
     }
   }
 
+  /**
+   * 选择牌
+   * @param {Object} card 选中的牌
+   */
   function selectCard(card) {
     if (selectedCards.includes(card)) {
       setSelectedCards(selectedCards.filter(c => c !== card));
@@ -102,6 +134,9 @@ const PokerGame = () => {
     }
   }
 
+  /**
+   * 打出选中的牌
+   */
   function playSelectedCards() {
     if (selectedCards.length <= actionPoints) {
       const newPlayerHand = playerHand.filter(card => !selectedCards.includes(card));
@@ -111,6 +146,10 @@ const PokerGame = () => {
     }
   }
 
+  /**
+   * 抽牌
+   * @param {number} count 抽牌数量
+   */
   function drawCards(count) {
     if (deck.length < count) {
       alert('Not enough cards in the deck!');
@@ -121,11 +160,19 @@ const PokerGame = () => {
     setDeck(deck.slice(count));
   }
 
+  /**
+   * 排序手牌
+   * @param {Array} hand 手牌
+   * @returns {Array} 排序后的手牌
+   */
   function sortHand(hand) {
     const valuesOrder = { 'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13 };
     return hand.sort((a, b) => valuesOrder[a.value] - valuesOrder[b.value]);
   }
 
+  /**
+   * 重置游戏
+   */
   function resetGame() {
     setDeck(createDeck());
     setPlayerHand([]);
@@ -141,6 +188,9 @@ const PokerGame = () => {
     setSelectedDice([]);
   }
 
+  /**
+   * 结束回合
+   */
   function endTurn() {
     if (actionPoints > 0) {
       drawCards(actionPoints);
@@ -154,6 +204,10 @@ const PokerGame = () => {
     setSelectedDice([]);
   }
 
+  /**
+   * 选择骰子
+   * @param {number} index 骰子索引
+   */
   function selectDice(index) {
     if (selectedDice.includes(index)) {
       setSelectedDice(selectedDice.filter(i => i !== index));
@@ -163,46 +217,55 @@ const PokerGame = () => {
   }
 
   return (
-    <div>
+    <div className="container">
       {!gameStarted ? (
         <button onClick={() => setGameStarted(true)}>Start Game</button>
       ) : (
         <>
           <h1>Poker Game</h1>
-          <button onClick={rollDice} disabled={refreshCount >= 3 || diceConfirmed}>Roll Dice</button>
-          <button onClick={refreshSelectedDice} disabled={selectedDice.length === 0 || refreshCount >= 3 || diceConfirmed}>Refresh Selected Dice</button>
-          <button onClick={resetGame}>Exit Game</button>
+          <Controls
+            rollDice={rollDice}
+            refreshSelectedDice={refreshSelectedDice}
+            resetGame={resetGame}
+            confirmDiceResults={confirmDiceResults}
+            playSelectedCards={playSelectedCards}
+            endTurn={endTurn}
+            refreshCount={refreshCount}
+            diceConfirmed={diceConfirmed}
+            selectedCards={selectedCards}
+            actionPoints={actionPoints}
+            selectedDice={selectedDice}
+          />
           {diceRolls.length > 0 && (
-            <div>
-              <p>Dice Rolls: {diceRolls.map((roll, index) => (
-                <span key={index} onClick={() => selectDice(index)} style={{ backgroundColor: selectedDice.includes(index) ? 'yellow' : 'white' }}>
-                  {roll}
-                </span>
-              ))}</p>
-              <p>Player Money: {playerMoney}</p>
-              <p>Refresh Count: {refreshCount}</p>
-              <p>Action Points: {actionPoints}</p>
-              <button onClick={confirmDiceResults} disabled={refreshCount === 0 || diceConfirmed}>Confirm Dice Rolls</button>
-              <button onClick={playSelectedCards} disabled={selectedCards.length === 0 || !diceConfirmed}>Play Selected Cards</button>
-              <button onClick={endTurn} disabled={!diceConfirmed}>End Turn</button>
-            </div>
+            <Dice
+              diceRolls={diceRolls}
+              selectDice={selectDice}
+              selectedDice={selectedDice}
+              playerMoney={playerMoney}
+              refreshCount={refreshCount}
+              actionPoints={actionPoints}
+            />
           )}
           <h2>Player Hand</h2>
-          <ul>
+          <div className="hand">
             {playerHand.map((card, index) => (
-              <li key={index} onClick={() => selectCard(card)} style={{ backgroundColor: selectedCards.includes(card) ? 'yellow' : 'white' }}>
-                {card.value} {card.suit}
-              </li>
+              <Poker
+                key={index}
+                id={mapPokerIdToCardId(index + 1)}
+                className={selectedCards.includes(card) ? 'selected' : ''}
+                onClick={() => selectCard(card)}
+              />
             ))}
-          </ul>
+          </div>
           <h2>Dealer Hand</h2>
-          <ul>
+          <div className="hand">
             {dealerHand.map((card, index) => (
-              <li key={index}>
-                {card.value} {card.suit}
-              </li>
+              <Poker
+                key={index}
+                id={mapPokerIdToCardId(index + 4)}
+              />
             ))}
-          </ul>
+          </div>
           <p>Current Round: {currentRound}</p>
         </>
       )}
